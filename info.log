@@ -1,0 +1,7 @@
+2024-04-19 08:18:33,127 INFO :: This message just shows basic information
+2024-04-19 08:18:33,127 WARNING :: This message is about something you should pay attention to
+2024-04-19 08:18:33,127 ERROR :: This message helps to debug an error that occurred in your program
+2024-04-19 08:21:33,571 INFO :: This message just shows basic information
+2024-04-19 08:21:33,571 WARNING :: This message is about something you should pay attention to
+2024-04-19 08:21:33,571 ERROR :: This message helps to debug an error that occurred in your program
+2024-04-19 08:21:33,571 INFO :: Hello from the Kucoin Connector
