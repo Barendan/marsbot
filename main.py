@@ -1,28 +1,26 @@
-import tkinter as tk
-import logging
+from config import API_KEY, API_SECRET, API_PASSPHRASE
+from kucoin_connect import get_accounts, get_symbol_ticker
 
-logger = logging.getLogger()
-
-logger.setLevel(logging.INFO)
-
-stream_handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s %(levelname)s :: %(message)s')
-stream_handler.setFormatter(formatter)
-stream_handler.setLevel(logging.INFO)
-
-file_handler = logging.FileHandler("info.log")
-file_handler.setFormatter(formatter)
-file_handler.setLevel(logging.DEBUG)
+import pprint
 
 
-logger.addHandler(stream_handler)
-logger.addHandler(file_handler)
+def get_contracts():
+    accounts = get_accounts(API_KEY, API_SECRET, API_PASSPHRASE)
+    print("Res:", accounts)
+    print("Done Nice")
+    pprint.pprint(accounts)
 
 
-logger.info("This is logged in all cases")
+# get_contracts()
 
-if __name__ == '__main__':
-    logger.info("This is logged only if we execute the main.py file")
-    root = tk.Tk()
-    root.mainloop()
+symbol = 'BTC-USDT'
+
+
+def get_price():
+    price = get_symbol_ticker(API_KEY, API_SECRET, API_PASSPHRASE, symbol)
+    if price is not None:
+        print(f"The current price of {symbol} is {price}")
+
+
+get_price()
 
