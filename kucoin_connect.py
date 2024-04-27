@@ -55,8 +55,8 @@ def get_coin(api_key, api_secret, api_passphrase, symbol):
     if response.status_code == 200:
         data = response.json()
 
-        print("Magnify:", data['data'])
-        print("More:", data)
+        # print("Magnify:", data['data'])
+        # print("More:", data)
 
         price = data['data']['price']
 
