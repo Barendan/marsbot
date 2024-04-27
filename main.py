@@ -18,13 +18,11 @@ file_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
-logger.debug("This message is important when debugging the program")
-logger.info("This message just shows basic information")
-logger.warning("This message is about something you should pay attention to")
-logger.error("This message helps to debug an error that occurred in your program")
 
+logger.info("This is logged in all cases")
 
 if __name__ == '__main__':
+    logger.info("This is logged only if we execute the main.py file")
     root = tk.Tk()
     root.mainloop()
 
