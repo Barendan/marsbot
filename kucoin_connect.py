@@ -31,7 +31,22 @@ def get_accounts(api_key, api_secret, api_passphrase):
     return response.json()
 
 
-def get_symbol_ticker(api_key, api_secret, api_passphrase, symbol):
+def get_coins():
+    endpoint = 'https://api.kucoin.com/api/v1/symbols'
+
+    response = requests.get(endpoint)
+
+    if response.status_code == 200:
+        data = response.json()
+        symbols = [symbol['symbol'] for symbol in data['data']]
+
+        return symbols
+    else:
+        print(f"Error: {response.status_code} - {response.text}")
+        return None
+
+
+def get_coin(api_key, api_secret, api_passphrase, symbol):
     endpoint = f'https://api.kucoin.com/api/v1/market/orderbook/level1?symbol={symbol}'
     headers = generate_auth_headers(api_key, api_secret, api_passphrase, 'GET',f'/api/v1/market/orderbook/level1?symbol={symbol}')
 
