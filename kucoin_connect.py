@@ -5,11 +5,13 @@ import hmac
 import base64
 
 
+
 def generate_auth_headers(api_key, api_secret, api_passphrase, method, endpoint):
     timestamp = int(time.time() * 1000)
-    # Create the prehash string
+
+    # Create prehash string
     prehash_string = f"{timestamp}{method}{endpoint}"
-    # Generate the signature
+    # Generate signature
     signature = base64.b64encode(hmac.new(api_secret.encode(), prehash_string.encode(), hashlib.sha256).digest())
 
     headers = {
@@ -27,12 +29,23 @@ def get_accounts(api_key, api_secret, api_passphrase):
     endpoint = 'https://api.kucoin.com/api/v1/accounts'
     headers = generate_auth_headers(api_key, api_secret, api_passphrase, 'GET', '/api/v1/accounts')
 
+    balances = {}
+    encountered_currencies = set()
+
     response = requests.get(endpoint, headers=headers)
-    return response.json()
+    account_data = response.json()
+
+    if account_data is not None:
+        for a in account_data["data"]:
+            if a['currency'] not in encountered_currencies:
+                balances[a['currency']] = a['balance']
+                encountered_currencies.add(a['currency'])
+
+    return balances
 
 
-def get_coins():
-    endpoint = 'https://api.kucoin.com/api/v1/symbols'
+def get_coins(limit=20):
+    endpoint = f'https://api.kucoin.com/api/v1/symbols?limit={limit}'
 
     response = requests.get(endpoint)
 
@@ -64,3 +77,15 @@ def get_coin(api_key, api_secret, api_passphrase, symbol):
     else:
         print(f"Error: {response.status_code} - {response.text}")
         return None
+
+
+def place_order():
+    return
+
+
+def cancel_order():
+    return
+
+
+def get_order_status():
+    return
