@@ -1,23 +1,45 @@
 from config import API_KEY, API_SECRET, API_PASSPHRASE
-from kucoin_connect import get_accounts, get_coin, get_coins
+from kucoin_connect import KucoinAPI
 import pprint
 import tkinter as tk
 
 
-def get_price():
-    symbol = 'BTC-USDT'
-    price = get_coin(API_KEY, API_SECRET, API_PASSPHRASE, symbol)
-    if price is not None:
-        print(f"The current price of {symbol} is {price}")
+kucoin_api = KucoinAPI(API_KEY, API_SECRET, API_PASSPHRASE)
+
+balances = kucoin_api.get_accounts()
 
 
-def get_balance():
-    balances = get_accounts(API_KEY, API_SECRET, API_PASSPHRASE)
-    print("Here are your balances:")
-    pprint.pprint(balances)
+# Print the balances to verify if the connection is successful
+print("Account Balances in Environment:")
+print(balances)
+
+coins = kucoin_api.get_coins()
+# print("Here are some coins:", coins)
+
+# example order data
+order_data = {
+    'clientOid': '0x000001DD_BA6DC170',
+    'symbol': 'BTC-USDT',
+    'side': 'buy',
+    'type': 'limit',
+    'price': 43200,
+    'size': '0.001',
+}
+# order_status = kucoin_api.place_order(order_data)
+# print("Order Status:", order_status)
 
 
-get_balance()
+# example cancel order
+# order_id_to_cancel = '6632b02625856c0007894662'
+# cancel_result = kucoin_api.cancel_order(order_id_to_cancel)
+# if cancel_result:
+#     print("Order canceled successfully.")
+
+
+# example order status
+# order_id_to_check = '6632b02625856c0007894662'
+# order_status = kucoin_api.get_order_status(order_id_to_check)
+# print("Order Status:", order_status)
 
 
 if __name__ == '__main__':
@@ -26,7 +48,7 @@ if __name__ == '__main__':
     root.configure(bg='gray12')
 
     crypto_font = ('Calibri', 11, 'bold')
-    coins = get_coins()
+    # coins = get_coins()
 
     frame = tk.Frame(root, bg='gray')
     frame.pack(padx=10, pady=10)
@@ -40,7 +62,5 @@ if __name__ == '__main__':
             label = tk.Label(frame, text=label_text, font=crypto_font, fg='Steel Blue1', bg='gray12')
             label.grid(row=row_index, column=col_index, sticky='ew')
 
-    # root.mainloop()
-
-
+    root.mainloop()
 
