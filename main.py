@@ -3,18 +3,29 @@ from kucoin_connect import KucoinAPI
 import pprint
 import tkinter as tk
 
-
 kucoin_api = KucoinAPI(API_KEY, API_SECRET, API_PASSPHRASE)
 
 balances = kucoin_api.get_accounts()
-
-
 # Print the balances to verify if the connection is successful
 print("Account Balances in Environment:")
 print(balances)
 
-coins = kucoin_api.get_coins()
-# print("Here are some coins:", coins)
+klines_btc = {
+    'symbol': 'BTC-USDT',
+    'type': '1hour',
+}
+
+# Call the method with the parameters object
+historical_candles = kucoin_api.get_historical_candles(klines_btc)
+if historical_candles:
+    print("Historical Candles:")
+    print(historical_candles)
+
+
+
+
+
+
 
 # example order data
 order_data = {
@@ -42,25 +53,25 @@ order_data = {
 # print("Order Status:", order_status)
 
 
-if __name__ == '__main__':
-    root = tk.Tk()
-    root.title("KuCoin Coins")
-    root.configure(bg='gray12')
-
-    crypto_font = ('Calibri', 11, 'bold')
-    # coins = get_coins()
-
-    frame = tk.Frame(root, bg='gray')
-    frame.pack(padx=10, pady=10)
-
-    if coins:
-        for i, coin in enumerate(coins):
-            row_index = i // 5
-            col_index = i % 5
-
-            label_text = f"{i + 1}. {coin}"
-            label = tk.Label(frame, text=label_text, font=crypto_font, fg='Steel Blue1', bg='gray12')
-            label.grid(row=row_index, column=col_index, sticky='ew')
-
-    root.mainloop()
-
+# if __name__ == '__main__':
+#     root = tk.Tk()
+#     root.title("KuCoin Coins")
+#     root.configure(bg='gray12')
+#
+#     crypto_font = ('Calibri', 11, 'bold')
+#     coins = kucoin_api.get_coins()
+#
+#     frame = tk.Frame(root, bg='gray')
+#     frame.pack(padx=10, pady=10)
+#
+#     if coins:
+#         for i, coin in enumerate(coins):
+#             row_index = i // 5
+#             col_index = i % 5
+#
+#             label_text = f"{i + 1}. {coin}"
+#             label = tk.Label(frame, text=label_text, font=crypto_font, fg='Steel Blue1', bg='gray12')
+#             label.grid(row=row_index, column=col_index, sticky='ew')
+#
+#     root.mainloop()
+#
