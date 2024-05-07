@@ -31,8 +31,6 @@ class KucoinAPI:
             'Content-Type': 'application/json'
         }
 
-        # print("Head", prehash_string)
-
         return headers
 
     def get_accounts(self):
