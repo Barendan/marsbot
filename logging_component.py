@@ -12,7 +12,7 @@ class Logging(tk.Frame):
                                     font=GLOBAL_FONT)
         self.logging_text.pack(side=tk.TOP)
 
-    # def add_log(self, message: str):
-    #     self.logging_text.configure(state=tk.NORMAL)
-    #     self.logging_text.insert("1.0", datetime.utcnow().strftime("%a %H:%M:%S :: ") + message + "\n")
-    #     self.logging_text.configure(state=tk.DISABLED)
+    def add_log(self, message: str):
+        self.logging_text.configure(state=tk.NORMAL)
+        self.logging_text.insert("1.0", datetime.now().strftime("%a %H:%M:%S :: ") + message + "\n")
+        self.logging_text.configure(state=tk.DISABLED)
