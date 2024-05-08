@@ -1,22 +1,29 @@
 from config import API_KEY, API_SECRET, API_PASSPHRASE
 from kucoin_connect import KucoinAPI
-import pprint
-import tkinter as tk
-
 from root_component import Root
 
 kucoin_api = KucoinAPI(API_KEY, API_SECRET, API_PASSPHRASE)
 
+# GET BALANCES TEST
 balances = kucoin_api.get_accounts()
-# Print the balances to verify if the connection is successful
 print("Account Balances in Environment:")
 print(balances)
 
+# GET ALL COINS TEST
+# coins = kucoin_api.get_coins()
+# print('Fetched coins:',coins)
+
+# GET 1 COIN TEST
+# coin = kucoin_api.get_coin('BTC-USDT')
+# print('Fetched coin:',coin)
+
+
+
+# GET CANDLES TEST
 klines_btc = {
     'symbol': 'BTC-USDT',
     'type': '1hour',
 }
-
 # Call the method with the parameters object
 # historical_candles = kucoin_api.get_historical_candles(klines_btc)
 # if historical_candles:
@@ -25,11 +32,7 @@ klines_btc = {
 
 
 
-
-
-
-
-# example order data
+# SAMPLE ORDER DATA
 order_data = {
     'clientOid': '0x000001DD_BA6DC170',
     'symbol': 'BTC-USDT',
@@ -38,8 +41,8 @@ order_data = {
     'price': 43200,
     'size': '0.001',
 }
-# order_status = kucoin_api.place_order(order_data)
-# print("Order Status:", order_status)
+order_status = kucoin_api.place_order(order_data)
+print("Order Status:", order_status)
 
 
 # example cancel order
