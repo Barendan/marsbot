@@ -41,23 +41,22 @@ order_data = {
     'price': 43200,
     'size': '0.001',
 }
-order_status = kucoin_api.place_order(order_data)
-print("Order Status:", order_status)
-
-
-# example cancel order
-# order_id_to_cancel = '6632b02625856c0007894662'
-# cancel_result = kucoin_api.cancel_order(order_id_to_cancel)
-# if cancel_result:
-#     print("Order canceled successfully.")
-
+# order_made = kucoin_api.place_order(order_data)
+# print("Order made:", order_made)
 
 # example order status
-# order_id_to_check = '6632b02625856c0007894662'
+# order_id_to_check = '6644fbc38de67e0007bdd142'
 # order_status = kucoin_api.get_order_status(order_id_to_check)
 # print("Order Status:", order_status)
 
-
+# example cancel order
+# order_id_to_cancel = '6644fbc38de67e0007bdd142'
+# cancel_result = kucoin_api.cancel_order(order_id_to_cancel)
+# if 'data' in cancel_result and 'cancelledOrderIds' in cancel_result['data']:
+#     cancelled_order_ids = cancel_result['data']['cancelledOrderIds']
+#     print('Cancelled order IDs:', cancelled_order_ids)
+# else:
+#     print('Error in order cancel:', cancel_result['msg'])
 
 
 

@@ -47,8 +47,6 @@ class KucoinAPI:
         if len(data) > 0:
             prehash_string += json.dumps(data)
 
-        print('Hash', prehash_string)
-
         return base64.b64encode(hmac.new(self.api_secret.encode('utf-8'), prehash_string.encode(), hashlib.sha256).digest())
 
     def _make_request(self, method: str, endpoint: str, data: typing.Dict):
@@ -59,28 +57,30 @@ class KucoinAPI:
         headers['KC-API-TIMESTAMP'] = timestamp
         headers['KC-API-PASSPHRASE'] = self.api_passphrase
 
-        # print('show me the request:', self.base_url + endpoint, data)
-
         if method == "GET":
             try:
-                response = requests.get(self.base_url + endpoint, params=data, headers=headers)
+                if len(data) > 0:
+                    response = requests.get(self.base_url + endpoint, json=data, headers=headers)
+                else:
+                    response = requests.get(self.base_url + endpoint, params=data, headers=headers)
             except Exception as e:
                 logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
                 return None
 
         elif method == "POST":
             try:
-                response = requests.post(self.base_url + endpoint, params=data, headers=headers)
+                response = requests.post(self.base_url + endpoint, json=data, headers=headers)
             except Exception as e:
                 logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
                 return None
 
         elif method == "DELETE":
             try:
-                response = requests.delete(self.base_url + endpoint, params=data, headers=headers)
+                response = requests.delete(self.base_url + endpoint, json=data, headers=headers)
             except Exception as e:
                 logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
                 return None
+
         else:
             raise ValueError()
 
@@ -142,89 +142,34 @@ class KucoinAPI:
         else:
             return None
 
-    def generate_auth_headers(self, method, endpoint, data=None):
-        timestamp = int(time.time() * 1000)
-
-        prehash_string = f"{timestamp}{method}{endpoint}"
-
-        if data is not None:
-            prehash_string += json.dumps(data)
-
-        print('Proper string', prehash_string)
-
-        signature = base64.b64encode(
-            hmac.new(self.api_secret.encode('utf-8'), prehash_string.encode('utf-8'), hashlib.sha256).digest())
-
-        headers = {
-            'KC-API-SIGN': signature,
-            'KC-API-KEY': self.api_key,
-            'KC-API-TIMESTAMP': str(timestamp),
-            'KC-API-PASSPHRASE': self.api_passphrase,
-            'Content-Type': 'application/json'
-        }
-
-        return headers
-
-    # def place_order(self, order_data):
-    #     endpoint = f'{self.base_url}/api/v1/orders'
-    #     headers = self.generate_auth_headers('POST', '/api/v1/orders', order_data)
-    #
-    #     response = requests.post(endpoint, json=order_data, headers=headers)
-    #
-    #     if response.status_code == 200:
-    #         order_status = response.json()
-    #         print("Placed order:", order_status)
-    #         return order_status
-    #     else:
-    #         print(f"Error: {response.status_code} - {response.text}")
-    #         return None
-
-
-
     def place_order(self, order_data):
         endpoint = f'/api/v1/orders'
-        # headers = self.generate_auth_headers('POST', '/api/v1/orders', data=order_data)
+        order_placed = self._make_request('POST', endpoint, data=order_data)
 
-        order_placed = self._make_request("POST", endpoint, data=order_data)
-
-        print("PLaced:", order_placed)
-        # response = requests.post(endpoint, json=order_data, headers=headers)
-
-        # if len(order_placed) > 0:
-        #     print("Placed order:", order_placed)
-        #     return order_placed
-        # else:
-        #     return None
-
-
-
-
+        if len(order_placed) > 0:
+            return order_placed
+        else:
+            return None
 
     def cancel_order(self, order_id):
         endpoint = f'/api/v1/orders/{order_id}'
-        headers = self.generate_auth_headers('DELETE', f'/api/v1/orders/{order_id}')
+        order_status = self._make_request('DELETE', endpoint, data=order_id)
 
-        response = requests.delete(endpoint, headers=headers)
-
-        if response.status_code == 200:
-            print("Order canceled successfully.")
-            return True
-        else:
-            print(f"Error: {response.status_code} - {response.text}")
-            return False
+        return order_status
 
     def get_order_status(self, order_id):
+        clean_order_status = {}
         endpoint = f'/api/v1/orders/{order_id}'
-        headers = self.generate_auth_headers('GET', f'/api/v1/orders/{order_id}')
+        order_status = self._make_request('GET', endpoint, data=order_id)
 
-        response = requests.get(endpoint, headers=headers)
+        if order_status is not None:
+            clean_order_status['symbol'] = order_status['data']['symbol']
+            clean_order_status['side'] = order_status['data']['side']
+            clean_order_status['size'] = order_status['data']['size']
+            clean_order_status['price'] = order_status['data']['price']
+            clean_order_status['isActive'] = order_status['data']['isActive']
 
-        if response.status_code == 200:
-            order_status = response.json()
-            return order_status
-        else:
-            print(f"Error: {response.status_code} - {response.text}")
-            return None
+            return clean_order_status
 
     def _start_ws(self):
         socket_url = self.wss_url + "endpoint" + "?token=" + self.wss_public_token
@@ -275,7 +220,6 @@ class KucoinAPI:
                 self.prices[symbol]['price'] = float(sub_data['data']['price'])
                 self.prices[symbol]['bid'] = float(sub_data['data']['bestBid'])
                 self.prices[symbol]['ask'] = float(sub_data['data']['bestAsk'])
-
 
     def subscribe_channel(self, contracts):
         data = dict()
