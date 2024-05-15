@@ -18,7 +18,6 @@ print(balances)
 # print('Fetched coin:',coin)
 
 
-
 # GET CANDLES TEST
 klines_btc = {
     'symbol': 'BTC-USDT',
@@ -60,21 +59,7 @@ order_data = {
 
 
 
-
-
-
-
 if __name__ == '__main__':
-    # root = tk.Tk()
-    # root.title("KuCoin Coins")
-    # root.configure(bg='gray12')
-    #
-    # crypto_font = ('Calibri', 11, 'bold')
-    # coins = kucoin_api.get_coins()
-    #
-    # frame = tk.Frame(root, bg='gray')
-    # frame.pack(padx=10, pady=10)
-    #
     # if coins:
     #     for i, coin in enumerate(coins):
     #         row_index = i // 5
@@ -86,4 +71,3 @@ if __name__ == '__main__':
 
     root = Root()
     root.mainloop()
-
