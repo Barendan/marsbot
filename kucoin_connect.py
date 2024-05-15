@@ -25,6 +25,7 @@ class KucoinAPI:
         self.prices = dict()
         self.logs = []
 
+        self._ws_id = 1
         self._ws = None
 
         t = threading.Thread(target=self._start_ws)
@@ -34,7 +35,7 @@ class KucoinAPI:
 
     def add_log(self, msg: str):
         logger.info("%s", msg)
-        self.logs.append({"log": msg, "displayed": False })
+        self.logs.append({"log": msg, "displayed": False})
 
     def _generate_signature(self, method: str, endpoint: str, timestamp: str, data: typing.Dict) -> bytes:
         prehash_string = f"{timestamp}{method}{endpoint}"
@@ -166,9 +167,6 @@ class KucoinAPI:
 
             return clean_order_status
 
-
-
-
     def _start_ws(self):
         public_token = ''
         auth_endpoint = 'https://api.kucoin.com/api/v1/bullet-public'
@@ -191,9 +189,8 @@ class KucoinAPI:
                 logger.error("Kucoin error in run_forever() method: %s", e)
             time.sleep(2)
 
-    def on_open(self, *args):
-        print("Connection established")
-        logger.info("Kucoin connection opened")
+    def on_open(self, ws):
+        logger.info("Kucoin websocket connection opened")
 
         self.subscribe_channel(["/market/ticker:BTC-USDT", "/market/ticker:ETH-USDT"])
 
@@ -201,38 +198,43 @@ class KucoinAPI:
         logger.warning("Kucoin Websocket connection closed")
 
     def on_error(self, ws, msg: str):
-        print('error message is:', msg)
-        # logger.error("Kucoin connection error: %s", msg)
+        logger.error("Kucoin connection error: %s", msg)
 
     def on_message(self, ws, msg: str):
         sub_data = json.loads(msg)
 
         # print("show me data:", sub_data)
 
-        # if 'data' in sub_data:
-        #     symbol = sub_data['topic'].split(':')[-1]
-        #
-        #     # print('sub', sub_data['data'])
-        #
-        #     if symbol not in self.prices:
-        #         self.prices[symbol] = {
-        #             'price': float(sub_data['data']['price']),
-        #             'bid': float(sub_data['data']['bestBid']),
-        #             'ask': float(sub_data['data']['bestAsk'])
-        #
-        #         }
-        #     else:
-        #         self.prices[symbol]['price'] = float(sub_data['data']['price'])
-        #         self.prices[symbol]['bid'] = float(sub_data['data']['bestBid'])
-        #         self.prices[symbol]['ask'] = float(sub_data['data']['bestAsk'])
+        if 'data' in sub_data:
+            symbol = sub_data['topic'].split(':')[-1]
+
+            # print('sub', sub_data['data'])
+
+            if symbol not in self.prices:
+                self.prices[symbol] = {
+                    'price': float(sub_data['data']['price']),
+                    'bid': float(sub_data['data']['bestBid']),
+                    'ask': float(sub_data['data']['bestAsk'])
+                }
+
+            else:
+                self.prices[symbol]['price'] = float(sub_data['data']['price'])
+                self.prices[symbol]['bid'] = float(sub_data['data']['bestBid'])
+                self.prices[symbol]['ask'] = float(sub_data['data']['bestAsk'])
+
+            self.add_log(symbol + " " + str(sub_data['data']['bestBid']) + " / " + str(sub_data['data']['bestAsk']))
+
+        # print('Socket returns:', self.prices)
 
     def subscribe_channel(self, contracts):
         data = dict()
-        data['id'] = 1515124125112
+        data['id'] = self._ws_id
         data['type'] = "subscribe"
         data['privateChannel'] = False
         data['response'] = True
         # data['topic'] = "/market/ticker:all"
+
+        self._ws_id += 1
 
         for contract in contracts:
             data['topic'] = contract

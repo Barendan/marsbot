@@ -2,12 +2,32 @@ from config import API_KEY, API_SECRET, API_PASSPHRASE
 from kucoin_connect import KucoinAPI
 from root_component import Root
 
-kucoin_api = KucoinAPI(API_KEY, API_SECRET, API_PASSPHRASE)
+import logging
+
+logger = logging.getLogger()
+
+logger.setLevel(logging.INFO)
+
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s %(levelname)s :: %(message)s')
+stream_handler.setFormatter(formatter)
+stream_handler.setLevel(logging.INFO)
+
+file_handler = logging.FileHandler('info.log')
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
+
+# --------------------------
+# KUCOIN API TESTS
+# kucoin_api = KucoinAPI(API_KEY, API_SECRET, API_PASSPHRASE)
 
 # GET BALANCES TEST
-balances = kucoin_api.get_accounts()
-print("Account Balances in Environment:")
-print(balances)
+# balances = kucoin_api.get_accounts()
+# print("Account Balances in Environment:")
+# print(balances)
 
 # GET ALL COINS TEST
 # coins = kucoin_api.get_coins()
@@ -57,6 +77,8 @@ order_data = {
 # else:
 #     print('Error in order cancel:', cancel_result['msg'])
 
+# --------------------------
+
 
 
 if __name__ == '__main__':
@@ -69,5 +91,7 @@ if __name__ == '__main__':
     #         label = tk.Label(frame, text=label_text, font=crypto_font, fg='Steel Blue1', bg='gray12')
     #         label.grid(row=row_index, column=col_index, sticky='ew')
 
-    root = Root()
+    kucoin_api = KucoinAPI(API_KEY, API_SECRET, API_PASSPHRASE)
+
+    root = Root(kucoin_api)
     root.mainloop()

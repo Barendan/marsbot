@@ -5,8 +5,11 @@ from styling import *
 from logging_component import Logging
 
 class Root(tk.Tk):
-    def __init__(self):
+    def __init__(self, kucoin):
         super().__init__()
+
+        self.kucoin = kucoin
+
         self.title("KuCoin Coins")
         self.configure(bg=BG_COLOR)
 
@@ -19,6 +22,16 @@ class Root(tk.Tk):
         self._logging_frame = Logging(self._left_frame, bg=BG_COLOR)
         self._logging_frame.pack(side=tk.TOP)
 
-        self._logging_frame.add_log("This is a test message.")
-        time.sleep(2)
-        self._logging_frame.add_log("This is another test message.")
+        self.update_ui()
+
+        # self._logging_frame.add_log("This is a test message.")
+        # time.sleep(2)
+        # self._logging_frame.add_log("This is another test message.")
+
+    def update_ui(self):
+        for log in self.kucoin.logs:
+            if not log['displayed']:
+                self._logging_frame.add_log(log['log'])
+                log['displayed'] = True
+
+        self.after(1500, self.update_ui)
