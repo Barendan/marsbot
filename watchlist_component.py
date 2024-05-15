@@ -20,9 +20,27 @@ class Watchlist(tk.Frame):
         self.kucoin_entry = tk.Entry(self._commands_frame, fg=FG_COLOR, justify=tk.CENTER, insertbackground=FG_COLOR,
                                        bg=BG_COLOR_2)
         self.kucoin_entry.grid(row=1, column=0)
-        # self.kucoin_entry.bind("<Return>", self.add_symbol)
+        self.kucoin_entry.bind("<Return>", self.add_symbol)
 
 
         self.body_widgets = dict()
 
         self._headers = ["symbol", "exchange", "bid", "ask", "remove"]
+
+        for idx, h in enumerate(self._headers):
+            header = tk.Label(self._table_frame, text=h.capitalize() if h != "remove" else "", bg=BG_COLOR,
+                              fg=FG_COLOR, font=BOLD_FONT)
+            header.grid(row=0, column=idx)
+
+        for h in self._headers:
+            self.body_widgets[h] = dict()
+            if h in ["bid", "ask"]:
+                self.body_widgets[h + "_var"] = dict()
+
+        self._body_index = 1
+
+    def add_symbol(self, event):
+        symbol = event.widget.get()
+
+        # run the request
+        event.widget.delete(0, tk.END)
