@@ -3,6 +3,7 @@ import time
 
 from styling import *
 from logging_component import Logging
+from watchlist_component import Watchlist
 
 class Root(tk.Tk):
     def __init__(self, kucoin):
@@ -10,7 +11,7 @@ class Root(tk.Tk):
 
         self.kucoin = kucoin
 
-        self.title("KuCoin Coins")
+        self.title("KuCoin Trading Bot")
         self.configure(bg=BG_COLOR)
 
         self._left_frame = tk.Frame(self, bg=BG_COLOR)
@@ -18,6 +19,9 @@ class Root(tk.Tk):
 
         self._right_frame = tk.Frame(self, bg=BG_COLOR)
         self._right_frame.pack(side=tk.RIGHT)
+
+        self._watchlist_frame = Watchlist(self.kucoin, self._left_frame, bg=BG_COLOR)
+        self._watchlist_frame.pack(side=tk.TOP)
 
         self._logging_frame = Logging(self._left_frame, bg=BG_COLOR)
         self._logging_frame.pack(side=tk.TOP)
