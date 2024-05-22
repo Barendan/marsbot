@@ -117,7 +117,7 @@ class KucoinAPI:
 
             for contract in first_20_results:
                 contract_name = contract.get('symbol')
-                print('data fetching:', contract_name)
+                # print('data fetching:', contract_name)
                 contracts[contract_name] = contract
 
             return contracts
