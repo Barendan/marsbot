@@ -22,14 +22,15 @@ class KucoinAPI:
         self.api_secret = api_secret
         self.api_passphrase = api_passphrase
 
+        self.contracts = self.get_contracts()
         self.prices = dict()
         self.logs = []
 
         self._ws_id = 1
         self._ws = None
 
-        t = threading.Thread(target=self._start_ws)
-        t.start()
+        # t = threading.Thread(target=self._start_ws)
+        # t.start()
 
         logger.info("Kucoin Client successfully initialized")
 
@@ -104,6 +105,24 @@ class KucoinAPI:
                     encountered_currencies.add(a['currency'])
 
         return balances
+
+    def get_contracts(self):
+        endpoint = f'/api/v1/symbols'
+        contracts = dict()
+
+        exchange_info = self._make_request("GET", endpoint, dict())
+
+        if exchange_info['code'] == '200000':
+            first_20_results = exchange_info['data'][:20]
+
+            for contract in first_20_results:
+                contract_name = contract.get('symbol')
+                print('data fetching:', contract_name)
+                contracts[contract_name] = contract
+
+            return contracts
+        else:
+            return print('Error during get contracts', exchange_info['code'])
 
     def get_coins(self, limit=20):
         endpoint = f'/api/v1/symbols?limit={limit}'

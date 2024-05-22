@@ -42,5 +42,4 @@ class Watchlist(tk.Frame):
     def add_symbol(self, event):
         symbol = event.widget.get()
 
-        # run the request
         event.widget.delete(0, tk.END)
