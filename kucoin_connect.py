@@ -11,18 +11,26 @@ import base64
 import websocket
 import threading
 
+from models import *
+
 logger = logging.getLogger()
 
 
 class KucoinAPI:
     def __init__(self, api_key: str, api_secret: str, api_passphrase: str):
         self.base_url = 'https://api.kucoin.com'
+        self.futures_url = 'https://api-futures.kucoin.com'
         self.wss_url = 'wss://ws-api.kucoin.com/'
         self.api_key = api_key
         self.api_secret = api_secret
         self.api_passphrase = api_passphrase
 
         self.contracts = self.get_contracts()
+        self.balances = self.get_balances()
+
+        # print('Show balances:', self.balances)
+        # print('Show contracts:', self.contracts['XBTUSDTM'])
+
         self.prices = dict()
         self.logs = []
 
@@ -55,25 +63,32 @@ class KucoinAPI:
         headers['KC-API-PASSPHRASE'] = self.api_passphrase
 
         if method == "GET":
-            try:
-                if len(data) > 0:
-                    response = requests.get(self.base_url + endpoint, json=data, headers=headers)
-                else:
+            if endpoint.startswith('/api/v1/accounts'):
+                try:
                     response = requests.get(self.base_url + endpoint, params=data, headers=headers)
-            except Exception as e:
-                logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
-                return None
+                except Exception as e:
+                    logger.error("Non futures url has failed.")
+                    return None
+            else:
+                try:
+                    if len(data) > 0:
+                        response = requests.get(self.futures_url + endpoint, json=data, headers=headers)
+                    else:
+                        response = requests.get(self.futures_url + endpoint, params=data, headers=headers)
+                except Exception as e:
+                    logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
+                    return None
 
         elif method == "POST":
             try:
-                response = requests.post(self.base_url + endpoint, json=data, headers=headers)
+                response = requests.post(self.futures_url + endpoint, json=data, headers=headers)
             except Exception as e:
                 logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
                 return None
 
         elif method == "DELETE":
             try:
-                response = requests.delete(self.base_url + endpoint, json=data, headers=headers)
+                response = requests.delete(self.futures_url + endpoint, json=data, headers=headers)
             except Exception as e:
                 logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
                 return None
@@ -88,7 +103,7 @@ class KucoinAPI:
                          method, endpoint, response.json(), response.status_code)
             return None
 
-    def get_accounts(self):
+    def get_balances(self):
         endpoint = '/api/v1/accounts'
         data = dict()
         balances = {}
@@ -107,7 +122,7 @@ class KucoinAPI:
         return balances
 
     def get_contracts(self):
-        endpoint = f'/api/v1/symbols'
+        endpoint = '/api/v1/contracts/active'
         contracts = dict()
 
         exchange_info = self._make_request("GET", endpoint, dict())
@@ -115,37 +130,36 @@ class KucoinAPI:
         if exchange_info['code'] == '200000':
             first_20_results = exchange_info['data'][:20]
 
-            for contract in first_20_results:
-                contract_name = contract.get('symbol')
-                # print('data fetching:', contract_name)
-                contracts[contract_name] = contract
+            for contract_data in first_20_results:
+                # print('Show all Contracts:', contract_data)
+                contract_name = contract_data.get('symbol')
+                contracts[contract_name] = Contract(contract_data)
 
             return contracts
         else:
             return print('Error during get contracts', exchange_info['code'])
 
-    def get_coins(self, limit=20):
-        endpoint = f'/api/v1/symbols?limit={limit}'
-        data = dict()
+    def get_bid_ask(self, contract: Contract):
+        endpoint = f'/api/v1/ticker?symbol={contract.symbol}'
 
-        all_coins = self._make_request("GET", endpoint, data)
+        # print('Getting 1 contract', contract.symbol)
+        ba_response = self._make_request("GET", endpoint, contract.symbol)
 
-        if len(all_coins) > 0:
-            symbols = [symbol['symbol'] for symbol in all_coins['data']]
-            return symbols
+        if ba_response['code'] == '200000':
+            ba_data = ba_response['data']
+            print('Getting 1 contract', ba_data)
+
+            if contract.symbol not in self.prices:
+                self.prices[contract.symbol] = {'bid': float(ba_data['bestBidPrice']), 'ask': float(ba_data['bestAskPrice'])}
+            else:
+                self.prices[contract.symbol]['bid'] = float(ba_data['bestBidPrice'])
+                self.prices[contract.symbol]['ask'] = float(ba_data['bestAskPrice'])
+
+            return self.prices[contract.symbol]
         else:
-            return None
+            return print('Error during get bid_ask of symbol', ba_response['code'])
 
-    def get_coin(self, data):
-        endpoint = f'/api/v1/market/orderbook/level1?symbol={data}'
 
-        coin = self._make_request("GET", endpoint, data)
-
-        if len(coin) > 0:
-            price = coin['data']['price']
-            return price
-        else:
-            return None
 
     def get_historical_candles(self, params):
         endpoint = f'/api/v1/market/candles'

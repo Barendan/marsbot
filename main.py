@@ -33,7 +33,7 @@ logger.addHandler(file_handler)
 # coins = kucoin_api.get_coins()
 # print('Fetched coins:',coins)
 
-# GET 1 COIN TEST
+# GET 1 COIN TEST (retired method)
 # coin = kucoin_api.get_coin('BTC-USDT')
 # print('Fetched coin:',coin)
 

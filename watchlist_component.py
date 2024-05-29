@@ -1,6 +1,6 @@
 import tkinter as tk
-
 from styling import *
+
 
 class Watchlist(tk.Frame):
     def __init__(self, kucoin_contracts, *args, **kwargs):
