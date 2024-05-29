@@ -1,5 +1,4 @@
 import tkinter as tk
-import time
 
 from styling import *
 from logging_component import Logging
@@ -48,12 +47,8 @@ class Root(tk.Tk):
                 self.kucoin.get_bid_ask(self.kucoin.contracts[symbol])
                 continue
 
-            precision = self.kucoin.contracts[symbol].price_decimals
-
             prices = self.kucoin.prices[symbol]
-
-            print('Prices now:', prices)
-
+            precision = self.kucoin.contracts[symbol].price_decimals
 
             if prices['bid'] is not None:
                 # price_str = "{0:.{prec}f}".format(prices['bid'], prec=precision)
