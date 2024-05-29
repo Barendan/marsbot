@@ -50,11 +50,16 @@ class Root(tk.Tk):
             prices = self.kucoin.prices[symbol]
             precision = self.kucoin.contracts[symbol].price_decimals
 
+            # Convert decimal float into a whole number to represent precision
+            precision_str = f"{precision:.1e}"
+            exponent = int(precision_str.split('e')[-1])
+            decimal_places = abs(exponent)
+
             if prices['bid'] is not None:
-                # price_str = "{0:.{prec}f}".format(prices['bid'], prec=precision)
-                self._watchlist_frame.body_widgets['bid_var'][key].set(prices['bid'])
+                price_str = "{0:.{prec}f}".format(prices['bid'], prec=decimal_places)
+                self._watchlist_frame.body_widgets['bid_var'][key].set(price_str)
             if prices['ask'] is not None:
-                # price_str = "{0:.{prec}f}".format(prices['ask'], prec=precision)
-                self._watchlist_frame.body_widgets['ask_var'][key].set(prices['ask'])
+                price_str = "{0:.{prec}f}".format(prices['ask'], prec=decimal_places)
+                self._watchlist_frame.body_widgets['ask_var'][key].set(price_str)
 
         self.after(1500, self.update_ui)
