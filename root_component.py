@@ -1,8 +1,11 @@
 import tkinter as tk
+import logging
 
 from styling import *
 from logging_component import Logging
 from watchlist_component import Watchlist
+
+logger = logging.getLogger()
 
 
 class Root(tk.Tk):
@@ -34,32 +37,35 @@ class Root(tk.Tk):
                 self._logging_frame.add_log(log['log'])
                 log['displayed'] = True
 
-        for key, value in self._watchlist_frame.body_widgets['symbol'].items():
-            symbol = self._watchlist_frame.body_widgets['symbol'][key].cget("text")
+        try:
+            for key, value in self._watchlist_frame.body_widgets['symbol'].items():
+                symbol = self._watchlist_frame.body_widgets['symbol'][key].cget("text")
 
-            print('Symbol input:', symbol)
-            # print('Contract access', self.kucoin.contracts[symbol])
+                # print('Symbol input:', symbol)
+                # print('Contract access', self.kucoin.contracts[symbol])
 
-            if symbol not in self.kucoin.contracts:
-                continue
+                if symbol not in self.kucoin.contracts:
+                    continue
 
-            if symbol not in self.kucoin.prices:
-                self.kucoin.get_bid_ask(self.kucoin.contracts[symbol])
-                continue
+                if symbol not in self.kucoin.prices:
+                    self.kucoin.get_bid_ask(self.kucoin.contracts[symbol])
+                    continue
 
-            prices = self.kucoin.prices[symbol]
-            precision = self.kucoin.contracts[symbol].price_decimals
+                prices = self.kucoin.prices[symbol]
+                precision = self.kucoin.contracts[symbol].price_decimals
 
-            # Convert decimal float into a whole number to represent precision
-            precision_str = f"{precision:.1e}"
-            exponent = int(precision_str.split('e')[-1])
-            decimal_places = abs(exponent)
+                # Convert decimal float into a whole number to represent precision
+                precision_str = f"{precision:.1e}"
+                exponent = int(precision_str.split('e')[-1])
+                decimal_places = abs(exponent)
 
-            if prices['bid'] is not None:
-                price_str = "{0:.{prec}f}".format(prices['bid'], prec=decimal_places)
-                self._watchlist_frame.body_widgets['bid_var'][key].set(price_str)
-            if prices['ask'] is not None:
-                price_str = "{0:.{prec}f}".format(prices['ask'], prec=decimal_places)
-                self._watchlist_frame.body_widgets['ask_var'][key].set(price_str)
+                if prices['bid'] is not None:
+                    price_str = "{0:.{prec}f}".format(prices['bid'], prec=decimal_places)
+                    self._watchlist_frame.body_widgets['bid_var'][key].set(price_str)
+                if prices['ask'] is not None:
+                    price_str = "{0:.{prec}f}".format(prices['ask'], prec=decimal_places)
+                    self._watchlist_frame.body_widgets['ask_var'][key].set(price_str)
+        except RuntimeError as e:
+            logger.error("Error while looping through watchlist dictionary: %s", e)
 
         self.after(1500, self.update_ui)

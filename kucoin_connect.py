@@ -159,8 +159,6 @@ class KucoinAPI:
         else:
             return print('Error during get bid_ask of symbol', ba_response['code'])
 
-
-
     def get_historical_candles(self, params):
         endpoint = f'/api/v1/market/candles'
 
