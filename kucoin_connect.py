@@ -28,6 +28,8 @@ class KucoinAPI:
         self.contracts = self.get_contracts()
         self.balances = self.get_balances()
 
+        self.candleBox = self.get_historical_candles("SOLUSDTM", 5)
+
         # print('Show balances:', self.balances)
         # print('Show contracts:', self.contracts['XBTUSDTM'])
 
@@ -72,8 +74,10 @@ class KucoinAPI:
             else:
                 try:
                     if len(data) > 0:
+                        print('Run Candles:', self.futures_url + endpoint)
                         response = requests.get(self.futures_url + endpoint, json=data, headers=headers)
                     else:
+                        # print('Run Candles:', self.futures_url + endpoint)
                         response = requests.get(self.futures_url + endpoint, params=data, headers=headers)
                 except Exception as e:
                     logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
@@ -159,15 +163,26 @@ class KucoinAPI:
         else:
             return print('Error during get bid_ask of symbol', ba_response['code'])
 
-    def get_historical_candles(self, params):
-        endpoint = f'/api/v1/market/candles'
+    def get_historical_candles(self, symbol, interval):
+        endpoint = f'/api/v1/kline/query?symbol={symbol}&granularity={interval}'
+        data = dict()
+        data['symbol'] = symbol
+        data['granularity'] = interval
+        # Start time (milisecond)
+        # data['from'] = 1000
+        # End time (milisecond)
+        # data['to'] = 1000
 
-        candles = self._make_request("GET", endpoint, data=params)
+        candles = self._make_request("GET", endpoint, data=data)
 
-        if len(candles) > 0:
-            return candles['data']
-        else:
-            return None
+        print('Candles:', candles)
+
+        # if len(candles) > 0:
+        #     return candles['data']
+        # else:
+        #     return None
+
+
 
     def place_order(self, order_data):
         endpoint = f'/api/v1/orders'
