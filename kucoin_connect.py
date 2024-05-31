@@ -3,6 +3,7 @@ import time
 import typing
 import requests
 import json
+from datetime import datetime
 
 import hashlib
 import hmac
@@ -74,10 +75,8 @@ class KucoinAPI:
             else:
                 try:
                     if len(data) > 0:
-                        print('Run Candles:', self.futures_url + endpoint)
                         response = requests.get(self.futures_url + endpoint, json=data, headers=headers)
                     else:
-                        # print('Run Candles:', self.futures_url + endpoint)
                         response = requests.get(self.futures_url + endpoint, params=data, headers=headers)
                 except Exception as e:
                     logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
@@ -172,15 +171,24 @@ class KucoinAPI:
         # data['from'] = 1000
         # End time (milisecond)
         # data['to'] = 1000
+        candles = []
 
-        candles = self._make_request("GET", endpoint, data=data)
+        candles_res = self._make_request("GET", endpoint, data=data)
+        candles = candles_res['data']
 
-        print('Candles:', candles)
 
-        # if len(candles) > 0:
-        #     return candles['data']
-        # else:
-        #     return None
+        processed_candles, atr = self.process_candles(candles)
+        # print('Candles:', processed_candles)
+        # print(json.dumps(processed_candles, indent=4))
+
+        print('Candles average diff:', len(processed_candles), atr)
+
+
+        if candles_res['code'] == '200000':
+
+            return candles
+        else:
+            return None
 
 
 
@@ -290,3 +298,25 @@ class KucoinAPI:
             except Exception as e:
                 print("WebSocket error while subscribing to", contract, ":", e)
 
+
+    def process_candles(self, candles):
+        processed = []
+        total_difference = 0
+
+        for entry in candles:
+            timestamp = entry[0]
+            highest_price = entry[2]
+            lowest_price = entry[3]
+            difference = highest_price - lowest_price
+            total_difference += difference
+
+            # Convert timestamp to a readable format
+            readable_time = datetime.utcfromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+
+            processed.append({
+                'time': readable_time,
+                'difference': difference
+            })
+
+        average_difference = total_difference / len(candles) if candles else 0
+        return processed, average_difference
