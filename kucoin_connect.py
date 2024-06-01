@@ -29,7 +29,7 @@ class KucoinAPI:
         self.contracts = self.get_contracts()
         self.balances = self.get_balances()
 
-        self.candleBox = self.get_historical_candles("SOLUSDTM", 5)
+        self.candleBox = self.get_symbol_stats("SOLUSDTM", 5, 4)
 
         # print('Show balances:', self.balances)
         # print('Show contracts:', self.contracts['XBTUSDTM'])
@@ -164,6 +164,7 @@ class KucoinAPI:
 
     def get_historical_candles(self, symbol, interval):
         endpoint = f'/api/v1/kline/query?symbol={symbol}&granularity={interval}'
+        candles = []
         data = dict()
         data['symbol'] = symbol
         data['granularity'] = interval
@@ -171,24 +172,77 @@ class KucoinAPI:
         # data['from'] = 1000
         # End time (milisecond)
         # data['to'] = 1000
-        candles = []
 
         candles_res = self._make_request("GET", endpoint, data=data)
-        candles = candles_res['data']
-
-
-        processed_candles, atr = self.process_candles(candles)
-        # print('Candles:', processed_candles)
-        # print(json.dumps(processed_candles, indent=4))
-
-        print('Candles average diff:', len(processed_candles), atr)
-
+        raw_candles = candles_res['data']
 
         if candles_res['code'] == '200000':
-
+            for c in raw_candles:
+                # candles.append(Candle(c, interval))
+                print(c)
             return candles
         else:
             return None
+
+    def get_symbol_stats(self, symbol, interval, num_batches):
+        all_candles = []
+        total_difference = 0
+        current_time = int(datetime.utcnow().timestamp() * 1000)
+        interval_ms = interval * 60 * 1000 * 200
+
+        data = dict()
+        data['symbol'] = symbol
+        data['granularity'] = interval
+
+        for _ in range(num_batches):
+            endpoint = f'/api/v1/kline/query?symbol={symbol}&granularity={interval}&to={current_time}'
+            data['to'] = current_time
+            batch_difference = 0
+
+            print('****************')
+            current_time -= interval_ms
+
+            candles_res = self._make_request("GET", endpoint, data=data)
+            candles = candles_res['data']
+
+            print("Total candle count:", len(all_candles))
+            print('First candle in batch:', candles[0])
+            print('Last candle in batch', candles[-1])
+
+            if not candles:
+                break
+
+            for entry in candles:
+                timestamp = entry[0]
+                highest_price = entry[2]
+                lowest_price = entry[3]
+                difference = highest_price - lowest_price
+                batch_difference += difference
+
+                readable_time = datetime.utcfromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+
+                all_candles.append({
+                    'time': readable_time,
+                    'difference': difference,
+                    'open': entry[1],
+                    'high': entry[2],
+                    'low': entry[3],
+                    'close': entry[4],
+                    'volume': entry[5]
+                })
+
+            total_difference += batch_difference
+            print('Batch average true range:', batch_difference / 200)
+
+
+        average_difference = total_difference / len(all_candles) if all_candles else 0
+        print('')
+        print('Total atr:', average_difference)
+
+        return all_candles, average_difference
+
+
+
 
 
 
@@ -303,20 +357,39 @@ class KucoinAPI:
         processed = []
         total_difference = 0
 
-        for entry in candles:
-            timestamp = entry[0]
-            highest_price = entry[2]
-            lowest_price = entry[3]
-            difference = highest_price - lowest_price
-            total_difference += difference
+        for _ in range(num_batches):
+            params = {
+                'symbol': symbol,
+                'granularity': interval,
+                'limit': batch_size,
+                'to': current_time
+            }
 
-            # Convert timestamp to a readable format
-            readable_time = datetime.utcfromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            # Make the request to the API
+            candles_res = self._make_request("GET", endpoint, params=params)
+            candles = candles_res['data']
 
-            processed.append({
-                'time': readable_time,
-                'difference': difference
-            })
+            if not candles:
+                break
+
+            for entry in candles:
+                timestamp = entry[0]
+                highest_price = entry[2]
+                lowest_price = entry[3]
+                difference = highest_price - lowest_price
+                total_difference += difference
+
+                # Convert timestamp to a readable format
+                readable_time = datetime.utcfromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+
+                processed.append({
+                    'time': readable_time,
+                    'difference': difference
+                })
+
+        # Set the current time to the timestamp of the earliest candle minus one interval
+        current_time = int(
+            datetime.strptime(processed[-1]['time'], '%Y-%m-%d %H:%M:%S').timestamp() * 1000) - interval_ms
 
         average_difference = total_difference / len(candles) if candles else 0
         return processed, average_difference
