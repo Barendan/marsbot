@@ -29,7 +29,7 @@ class KucoinAPI:
         self.contracts = self.get_contracts()
         self.balances = self.get_balances()
 
-        self.candleBox = self.get_symbol_stats("SOLUSDTM", 5, 4)
+        self.candleBox = self.get_symbol_stats("ETHUSDTM", 5, 3)
 
         # print('Show balances:', self.balances)
         # print('Show contracts:', self.contracts['XBTUSDTM'])
@@ -189,6 +189,8 @@ class KucoinAPI:
         total_difference = 0
         current_time = int(datetime.utcnow().timestamp() * 1000)
         interval_ms = interval * 60 * 1000 * 200
+        total_green_candles = 0
+        total_red_candles = 0
 
         data = dict()
         data['symbol'] = symbol
@@ -198,6 +200,8 @@ class KucoinAPI:
             endpoint = f'/api/v1/kline/query?symbol={symbol}&granularity={interval}&to={current_time}'
             data['to'] = current_time
             batch_difference = 0
+            batch_green_candles = 0
+            batch_red_candles = 0
 
             print('****************')
             current_time -= interval_ms
@@ -231,12 +235,22 @@ class KucoinAPI:
                     'volume': entry[5]
                 })
 
+                if entry[4] > entry[1]:
+                    batch_green_candles += 1
+                else:
+                    batch_red_candles += 1
+
             total_difference += batch_difference
+            total_green_candles += batch_green_candles
+            total_red_candles += batch_red_candles
+            print('Batch Green/red', batch_green_candles, batch_red_candles)
             print('Batch average true range:', batch_difference / 200)
+
 
 
         average_difference = total_difference / len(all_candles) if all_candles else 0
         print('')
+        print('Total Green/red', total_green_candles, total_red_candles)
         print('Total atr:', average_difference)
 
         return all_candles, average_difference
