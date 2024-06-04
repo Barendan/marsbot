@@ -6,17 +6,12 @@ from kucoin_connect import KucoinAPI
 
 
 class StrategyEditor(tk.Frame):
-    def __init__(self, root, KucoinAPI, *args, **kwargs):
+    def __init__(self, root, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.root = root
-        # self._exchanges = {"Binance": binance, "Bitmex": bitmex}
 
-        self._all_contracts = []
+        self._all_contracts = ["SOLUSDTM", "ETHUSDTM"]
         self._all_timeframes = ["1m", "5m", "15m", "30m", "1h", "4h"]
-
-        for exchange, client in self._exchanges.items():
-            for symbol, contract in client.contracts.items():
-                self._all_contracts.append(symbol + "_" + exchange.capitalize())
 
         self._commands_frame = tk.Frame(self, bg=BG_COLOR)
         self._commands_frame.pack(side=tk.TOP)
@@ -45,12 +40,12 @@ class StrategyEditor(tk.Frame):
             {"code_name": "balance_pct", "widget": tk.Entry, "data_type": float, "width": 7},
             {"code_name": "take_profit", "widget": tk.Entry, "data_type": float, "width": 7},
             {"code_name": "stop_loss", "widget": tk.Entry, "data_type": float, "width": 7},
-            # {"code_name": "parameters", "widget": tk.Button, "data_type": float, "text": "Parameters",
-            #  "bg": BG_COLOR_2, "command": self._show_popup},
-            # {"code_name": "activation", "widget": tk.Button, "data_type": float, "text": "OFF",
-            #  "bg": "darkred", "command": self._switch_strategy},
-            # {"code_name": "delete", "widget": tk.Button, "data_type": float, "text": "X",
-            #  "bg": "darkred", "command": self._delete_row},
+            {"code_name": "parameters", "widget": tk.Button, "data_type": float, "text": "Parameters",
+             "bg": BG_COLOR_2, "command": self._show_popup},
+            {"code_name": "activation", "widget": tk.Button, "data_type": float, "text": "OFF",
+             "bg": "darkred", "command": self._switch_strategy},
+            {"code_name": "delete", "widget": tk.Button, "data_type": float, "text": "X",
+             "bg": "darkred", "command": self._delete_row},
 
         ]
 
@@ -100,10 +95,10 @@ class StrategyEditor(tk.Frame):
 
             self.body_widgets[code_name][b_index].grid(row=b_index, column=col)
 
-        self._additional_parameters[b_index] = dict()
-
-        for strat, params in self._extra_params.items():
-            for param in params:
-                self._additional_parameters[b_index][param['code_name']] = None
-
         self._body_index += 1
+
+    def _delete_row(self, b_index: int):
+
+        for element in self._base_params:
+            self.body_widgets[element['code_name']][b_index].grid_forget()
+            del self.body_widgets[element['code_name']][b_index]
